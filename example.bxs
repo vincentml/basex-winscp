@@ -1,0 +1,2 @@
+SET BINDINGS "winscp:hostkey=ssh-rsa 4096 ***************************************,winscp:host=example.com,winscp:username=**********,winscp:password=**********,winscp:dryrun=false,directory=/"
+RUN example.xq

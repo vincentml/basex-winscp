@@ -124,6 +124,29 @@ declare function winscp:reload($filename as xs:string, $directory as xs:string) 
   return ( $script => winscp:executeWithDryRun() => winscp:checkResult() => prof:void() )
 };
 
+(:~ Process a file by downloading it, applying a custom function, and then uploading it back to the same location. :)
+declare function winscp:reload($filename as xs:string, $directory as xs:string, $fn as function(xs:string) as empty-sequence()) as empty-sequence() {
+  prof:dump($filename, 'reloading with function ' || inspect:function($fn)/@name || ' '),
+  let $localDirectory := file:temp-dir()
+  let $localFile := $localDirectory || '/' || $filename
+  let $scriptDown := (
+    'option confirm off',
+    'lcd ' || winscp:escape($localDirectory),
+    'cd ' || winscp:escape($directory),
+    'get ' || winscp:escape($filename)
+  )
+  let $scriptUp := (
+    'option confirm off',
+    'cd ' || winscp:escape($directory),
+    'put -nopreservetime -delete ' || winscp:escape($filename)
+  )
+  return (
+    $scriptDown => winscp:executeWithDryRun() => winscp:checkResult() => prof:void(),
+    $fn($localFile),
+    $scriptUp => winscp:executeWithDryRun() => winscp:checkResult() => prof:void()
+  )
+};
+
 (:~ Upload a file to a directory on the remote site :)
 declare function winscp:upload($localFile as xs:string, $remoteDirectory as xs:string) as empty-sequence() {
   prof:dump($localFile, 'uploading '),
